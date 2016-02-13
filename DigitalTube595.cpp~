@@ -13,14 +13,18 @@ DigitalTube595::DigitalTube595(uint8_t sclk, uint8_t rclk, uint8_t dio, uint8_t 
     _init();
     
 }
+
 void DigitalTube595::_init(){
     pinMode(_sclk, OUTPUT);
     pinMode(_rclk, OUTPUT);
     pinMode(_dio, OUTPUT);
     digitalWrite( _sclk, LOW );
     digitalWrite( _rclk, LOW );
-}
+};
+
+
 void DigitalTube595::update(){
+  _show[0] = 0b11111001;
   for(byte i = 0; i <= 3; i++){ 
     digitalWrite(_rclk, LOW);
     shiftOut(_dio, _sclk, MSBFIRST, _show[i]); 
@@ -28,36 +32,85 @@ void DigitalTube595::update(){
     digitalWrite(_rclk, HIGH); // защелкиваем регистры
     delayMicroseconds(1); // ждем немного перед отправкой следующего "числа"
   }      
-}
+};
 
-void DigitalTube595::show(String str){
-  
+byte DigitalTube595::_getSymbol(char ch, char nextCh, char noLower){
+    byte digit; 
+    byte res;
+    if ('0' <= ch && ch <= '9') {
+        digit = (ch - '0');
+        if (nextCh != '.') {
+            return _symbols[digit];
+        } 
+        return _symbolsWithDot[digit];
+    } else {
+        if (nextCh != '.') {
+            switch (noLower) {
+                case 'A': res = 0b10001000; break;
+                case 'b': res = 0b10000011; break;
+                case 'C': res = 0b11000110; break;
+                case 'd': res = 0b10100001; break;
+                case 'E': res = 0b10000110; break;
+                case 'F': res = 0b10001110; break;
+                case 'r': res = 0b10101111; break;
+                case 'h': res = 0b10001011; break;
+                case 'H': res = 0b10001001; break;
+                case 'L': res = 0b11000111; break;
+                case '-': res = 0b10111111; break;
+                case ' ': res = 0b11111111; break;
+                case 'p': 
+                case 'P': res = 0b10001100; break;
+                case 'i': 
+                case 'I': res = 0b11111001; break;                
+                //default: return 0; break; // ignored (off)
+            }                
+        } else {
+            switch (noLower) {
+                case 'A': res = 0b00001000; break;
+                case 'b': res = 0b00000011; break;
+                case 'C': res = 0b01000110; break;
+                case 'd': res = 0b00100001; break;
+                case 'E': res = 0b00000110; break;
+                case 'F': res = 0b00001110; break;
+                case 'r': res = 0b00101111; break;
+                case 'h': res = 0b00001011; break;
+                case 'H': res = 0b00001001; break;
+                case 'L': res = 0b01000111; break;
+                case '-': res = 0b00111111; break;
+                case ' ': res = 0b01111111; break;
+                case 'p': 
+                case 'P': res = 0b00001100; break;     
+                case 'i': 
+                case 'I': res = 0b11111001; break;                             
+                //default: return 0; break; // ignored (off)
+            }            
+        }     
+        return res;
+    }   
+};
+
+void DigitalTube595::show(String str){  
   char ch;
   char nextCh = ' ';  
-  byte digit;  
-  byte len = str.length;
+   
+  byte len = str.length();
   byte last = len - 1;
   byte cnt = 0;
   
   for ( byte i=0; i < len; i++ ) {
-     ch = tolower(str[i]);
-     if (i < last) {
+    ch = tolower(str[i]);
+    if (i < last) {
         nextCh = tolower(str[i + 1]);
-     } else {
+    } else {
         nextCh = ' ';
-     }
-     if ('0' <= ch && ch <= '9') {
-       digit = (ch - '0');
-       if (nextCh != '.') {
-           _show[cnt] = _symbols[digit];
-       } else {
-           _show[cnt] = _symbolsWithDot[digit];
-           i++;
-       }
-       cnt++;
-     }
+    }
+    _show[cnt] = _getSymbol(ch, nextCh, str[i]);
+    if (nextCh == '.') {
+        i++;
+    }     
+    cnt++;
   }
-}
+};
 const byte DigitalTube595::_symbols[] = {
   0b11000000, // 0
   0b11111001, // 1

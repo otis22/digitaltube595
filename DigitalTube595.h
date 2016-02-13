@@ -23,5 +23,6 @@ class DigitalTube595
 		static const byte _chr[];
 		byte _show[4];
 		void _init();
+		byte _getSymbol(char ch, char nextCh, char noLower);
 };
 #endif
