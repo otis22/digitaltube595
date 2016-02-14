@@ -24,7 +24,7 @@ void DigitalTube595::_init(){
 
 
 void DigitalTube595::update(){
-  _show[0] = 0b11111001;
+  //_show[0] = 0b11000001;
   for(byte i = 0; i <= 3; i++){ 
     digitalWrite(_rclk, LOW);
     shiftOut(_dio, _sclk, MSBFIRST, _show[i]); 
@@ -61,7 +61,10 @@ byte DigitalTube595::_getSymbol(char ch, char nextCh, char noLower){
                 case 'p': 
                 case 'P': res = 0b10001100; break;
                 case 'i': 
-                case 'I': res = 0b11111001; break;                
+                case 'I': res = 0b11111001; break;
+                case 'U': 
+                case 'u': res = 0b11000001; break;                
+                                
                 //default: return 0; break; // ignored (off)
             }                
         } else {
@@ -81,7 +84,9 @@ byte DigitalTube595::_getSymbol(char ch, char nextCh, char noLower){
                 case 'p': 
                 case 'P': res = 0b00001100; break;     
                 case 'i': 
-                case 'I': res = 0b11111001; break;                             
+                case 'I': res = 0b11111001; break;   
+                case 'U': 
+                case 'u': res = 0b11000001; break;                                              
                 //default: return 0; break; // ignored (off)
             }            
         }     
