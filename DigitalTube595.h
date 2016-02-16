@@ -19,10 +19,10 @@ class DigitalTube595
 		uint8_t _dio;
 		uint8_t _length;
 		static const byte _symbols[];
-		static const byte _symbolsWithDot[];
 		static const byte _chr[];
 		byte _show[4];
 		void _init();
 		byte _getSymbol(char ch, char nextCh, char noLower);
+		bool _isDelimiter(char ch);
 };
 #endif

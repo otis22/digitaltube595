@@ -34,62 +34,44 @@ void DigitalTube595::update(){
   }      
 };
 
+bool DigitalTube595::_isDelimiter(char ch){
+    return ch == '.' 
+        || ch == ':'
+        || ch == ','
+        || ch == ';'; 
+};
+
 byte DigitalTube595::_getSymbol(char ch, char nextCh, char noLower){
     byte digit; 
     byte res;
-    if ('0' <= ch && ch <= '9') {
+    if (isDigit(ch)) {
         digit = (ch - '0');
-        if (nextCh != '.') {
-            return _symbols[digit];
-        } 
-        return _symbolsWithDot[digit];
-    } else {
-        if (nextCh != '.') {
-            switch (noLower) {
-                case 'A': res = 0b10001000; break;
-                case 'b': res = 0b10000011; break;
-                case 'C': res = 0b11000110; break;
-                case 'd': res = 0b10100001; break;
-                case 'E': res = 0b10000110; break;
-                case 'F': res = 0b10001110; break;
-                case 'r': res = 0b10101111; break;
-                case 'h': res = 0b10001011; break;
-                case 'H': res = 0b10001001; break;
-                case 'L': res = 0b11000111; break;
-                case '-': res = 0b10111111; break;
-                case ' ': res = 0b11111111; break;
-                case 'p': 
-                case 'P': res = 0b10001100; break;
-                case 'i': 
-                case 'I': res = 0b11111001; break;
-                case 'U': 
-                case 'u': res = 0b11000001; break;                
-                                
-                //default: return 0; break; // ignored (off)
-            }                
-        } else {
-            switch (noLower) {
-                case 'A': res = 0b00001000; break;
-                case 'b': res = 0b00000011; break;
-                case 'C': res = 0b01000110; break;
-                case 'd': res = 0b00100001; break;
-                case 'E': res = 0b00000110; break;
-                case 'F': res = 0b00001110; break;
-                case 'r': res = 0b00101111; break;
-                case 'h': res = 0b00001011; break;
-                case 'H': res = 0b00001001; break;
-                case 'L': res = 0b01000111; break;
-                case '-': res = 0b00111111; break;
-                case ' ': res = 0b01111111; break;
-                case 'p': 
-                case 'P': res = 0b00001100; break;     
-                case 'i': 
-                case 'I': res = 0b01111001; break;   
-                case 'U': 
-                case 'u': res = 0b01000001; break;                                              
-                //default: return 0; break; // ignored (off)
-            }            
-        }     
+        return _symbols[digit];
+    } else {    
+        switch (noLower) {
+            case 'A': res = 0b10001000; break;
+            case 'b': res = 0b10000011; break;
+            case 'C': res = 0b11000110; break;
+            case 'd': res = 0b10100001; break;
+            case 'E': res = 0b10000110; break;
+            case 'F': res = 0b10001110; break;
+            case 'r': res = 0b10101111; break;
+            case 'h': res = 0b10001011; break;
+            case 'H': res = 0b10001001; break;
+            case 'L': res = 0b11000111; break;
+            case '-': res = 0b10111111; break;
+            case ' ': res = 0b11111111; break;
+            case 'p': 
+            case 'р':
+            case 'Р':
+            case 'P': res = 0b10001100; break;
+            case 'i': res = 0b11111011; break;
+            case 'I': res = 0b11111001; break;
+            case 'U': res = 0b11100011; break; 
+            case 'u': res = 0b11000001; break;                
+            case 'Г': res = 0b11001110; break;                 
+            default: return 0; break; // ignored (off)
+        }        
         return res;
     }   
 };
@@ -101,19 +83,29 @@ void DigitalTube595::show(String str){
   byte len = str.length();
   byte last = len - 1;
   byte cnt = 0;
-  
+  //Если строка короче длины дисплее, забиваем пробелы.
+  if (len < _length) {
+    str + "     ";
+  }
   for ( byte i=0; i < len; i++ ) {
     ch = tolower(str[i]);
+    //Находим следующий символ
     if (i < last) {
         nextCh = tolower(str[i + 1]);
     } else {
         nextCh = ' ';
     }
     _show[cnt] = _getSymbol(ch, nextCh, str[i]);
-    if (nextCh == '.') {
+    if (_isDelimiter(nextCh)) {
         i++;
+        //отражаем точку на дисплее
+        _show[cnt] = bitWrite(_show[cnt], 7, 0);
     }     
     cnt++;
+    //Если длина исчерпана завершаем
+    if (cnt > _length) {
+        break;
+    }
   }
 };
 const byte DigitalTube595::_symbols[] = {
@@ -128,18 +120,6 @@ const byte DigitalTube595::_symbols[] = {
   0b10000000, // 8
   0b10010000, // 9 
 };
-const byte DigitalTube595::_symbolsWithDot[] = {
-  0b01000000, // 0
-  0b01111001, // 1
-  0b00100100, // 2
-  0b00110000, // 3
-  0b00011001, // 4
-  0b00010010, // 5
-  0b00000010, // 6
-  0b01111000, // 7
-  0b00000000, // 8
-  0b00010000, // 9 
-};	
 const byte DigitalTube595::_chr[4] = {
   0b00001000,  
   0b00000100,  
